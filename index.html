@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="slides-format" content="viewport">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Allocation Optimisation at Towngas — FYP Presentation</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --surface2: #e8ecf1;
+    --surface3: #d1d8e0;
+    --accent:  #1a6dd4;
+    --accent2: #6c4fcf;
+    --accent3: #0a8f6f;
+    --warn:    #d47a0a;
+    --red:     #c93d3d;
+    --pink:    #c4408a;
+    --text:    #1a1f2e;
+    --text2:   #4a5568;
+    --text3:   #8696a7;
+    --radius:  14px;
+  }
+
+  html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: none; flex-direction: column; justify-content: center; align-items: center;
+    padding: 44px 68px;
+  }
+  .slide.active { display: flex; }
+  .slide-inner  { max-width: 1160px; width: 100%; }
+
+  h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.12; margin-bottom: 14px;
+       background: linear-gradient(135deg,var(--accent),var(--accent3));
+       -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  h2 { font-size: 1.9rem; font-weight: 700; line-height: 1.2; margin-bottom: 16px; color: var(--text); }
+  h2 .accent { color: var(--accent); }
+  h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+  p, li { font-size: .98rem; line-height: 1.7; color: var(--text2); }
+  li   { margin-bottom: 5px; }
+  ul   { padding-left: 20px; }
+  ol   { padding-left: 20px; }
+  strong { color: var(--text); font-weight: 600; }
+  em     { color: var(--accent3); font-style: normal; font-weight: 500; }
+
+  .subtitle    { font-size: 1.15rem; color: var(--text2); font-weight: 400; margin-bottom: 26px; }
+  .section-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: .76rem; font-weight: 600;
+         text-transform: uppercase; letter-spacing: .05em; margin-right: 5px; margin-bottom: 5px; }
+  .tag-blue   { background: rgba(26,109,212,.1);  color: var(--accent);  border: 1px solid rgba(26,109,212,.25); }
+  .tag-purple { background: rgba(108,79,207,.1);  color: var(--accent2); border: 1px solid rgba(108,79,207,.25); }
+  .tag-green  { background: rgba(10,143,111,.1);  color: var(--accent3); border: 1px solid rgba(10,143,111,.25); }
+  .tag-orange { background: rgba(212,122,10,.1);  color: var(--warn);    border: 1px solid rgba(212,122,10,.25); }
+  .tag-red    { background: rgba(201,61,61,.1);   color: var(--red);     border: 1px solid rgba(201,61,61,.25); }
+
+  /* Grids */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr;       gap: 16px; margin-top: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr;   gap: 14px; margin-top: 12px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface); border-radius: var(--radius); padding: 18px 20px;
+    border: 1px solid var(--surface2); box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    transition: transform .22s ease, box-shadow .22s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+  .card h3 { margin-bottom: 7px; }
+  .card p, .card li { font-size: .92rem; }
+  .card-accent { border-left: 4px solid var(--accent);  }
+  .card-purple { border-left: 4px solid var(--accent2); }
+  .card-green  { border-left: 4px solid var(--accent3); }
+  .card-orange { border-left: 4px solid var(--warn);    }
+  .card-red    { border-left: 4px solid var(--red);     }
+  .card-pink   { border-left: 4px solid var(--pink);    }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .9rem; }
+  th { text-align: left; padding: 9px 13px; background: #edf1f7; color: var(--accent);
+       font-weight: 600; border-bottom: 2px solid var(--surface2); font-size: .86rem; }
+  td { padding: 7px 13px; border-bottom: 1px solid var(--surface2); color: var(--text2); font-size: .86rem; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(26,109,212,.03); }
+
+  /* Flow */
+  .flow { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .flow-step {
+    background: var(--surface); border-radius: var(--radius); padding: 11px 14px;
+    font-size: .84rem; font-weight: 500; color: var(--text);
+    border: 1px solid var(--surface2); flex: 1; min-width: 100px; text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04); transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .flow-step:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+  .flow-arrow { font-size: 1.1rem; color: var(--text3); flex-shrink: 0; }
+  .flow-step.hl        { border-color: var(--accent);  background: rgba(26,109,212,.06); }
+  .flow-step.hl-green  { border-color: var(--accent3); background: rgba(10,143,111,.06); }
+  .flow-step.hl-orange { border-color: var(--warn);    background: rgba(212,122,10,.06); }
+  .flow-step.hl-red    { border-color: var(--red);     background: rgba(201,61,61,.06);  }
+  .flow-step.hl-purple { border-color: var(--accent2); background: rgba(108,79,207,.06); }
+
+  /* Big number */
+  .big-number { font-size: 2.2rem; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .big-label  { font-size: .74rem; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+
+  /* Boxes */
+  .insight-box {
+    background: linear-gradient(135deg,rgba(26,109,212,.05),rgba(10,143,111,.05));
+    border: 1px solid rgba(26,109,212,.18); border-radius: var(--radius);
+    padding: 14px 18px; margin-top: 12px;
+  }
+  .warn-box {
+    background: rgba(201,61,61,.04);
+    border: 1px solid rgba(201,61,61,.2); border-radius: var(--radius);
+    padding: 14px 18px; margin-top: 12px;
+  }
+  .note-box {
+    background: rgba(212,122,10,.04);
+    border: 1px solid rgba(212,122,10,.2); border-radius: var(--radius);
+    padding: 14px 18px; margin-top: 12px;
+  }
+
+  /* Badges */
+  .badge-new     { display:inline-block; background:rgba(10,143,111,.12); color:var(--accent3); border:1px solid rgba(10,143,111,.3);  border-radius:6px; font-size:.65rem; font-weight:700; padding:2px 7px; text-transform:uppercase; letter-spacing:.06em; vertical-align:middle; margin-left:5px; }
+  .badge-removed { display:inline-block; background:rgba(201,61,61,.1);   color:var(--red);     border:1px solid rgba(201,61,61,.25);   border-radius:6px; font-size:.65rem; font-weight:700; padding:2px 7px; text-transform:uppercase; letter-spacing:.06em; vertical-align:middle; margin-left:5px; }
+  .badge-changed { display:inline-block; background:rgba(212,122,10,.1);  color:var(--warn);    border:1px solid rgba(212,122,10,.25);  border-radius:6px; font-size:.65rem; font-weight:700; padding:2px 7px; text-transform:uppercase; letter-spacing:.06em; vertical-align:middle; margin-left:5px; }
+  .badge-est     { display:inline-block; background:rgba(212,122,10,.1);  color:var(--warn);    border:1px solid rgba(212,122,10,.25);  border-radius:6px; font-size:.65rem; font-weight:700; padding:2px 7px; text-transform:uppercase; letter-spacing:.06em; vertical-align:middle; margin-left:5px; }
+  .badge-ok      { display:inline-block; background:rgba(10,143,111,.12); color:var(--accent3); border:1px solid rgba(10,143,111,.3);   border-radius:6px; font-size:.65rem; font-weight:700; padding:2px 7px; text-transform:uppercase; letter-spacing:.06em; vertical-align:middle; margin-left:5px; }
+
+  /* Image placeholder */
+  .img-placeholder {
+    background: linear-gradient(135deg,var(--surface2),#dde3eb);
+    border: 2px dashed var(--surface3); border-radius: var(--radius);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text3); font-size: .85rem; text-align: center; padding: 20px;
+  }
+  .img-placeholder .ph-icon { font-size: 2.8rem; margin-bottom: 8px; }
+
+  /* Video placeholder */
+  .video-placeholder {
+    background: linear-gradient(135deg,#1a1f2e,#2d3748);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #a0aec0;
+    font-size: .88rem; text-align: center; padding: 24px; min-height: 180px;
+  }
+  .video-placeholder .play-icon { font-size: 3rem; margin-bottom: 10px; color: rgba(255,255,255,.6); }
+
+  /* Bar chart */
+  .bar-chart-wrap { display: flex; align-items: flex-end; gap: 24px; height: 200px; border-bottom: 2px solid var(--surface2); padding: 0 10px; }
+  .bar-col   { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  .bar-stack { width: 68%; display: flex; flex-direction: column-reverse; border-radius: 4px 4px 0 0; overflow: hidden; gap: 1px; }
+  .bar-seg   { width: 100%; }
+  .bar-total { font-size: .72rem; font-weight: 800; margin-bottom: 3px; }
+  .bar-name  { font-size: .82rem; font-weight: 700; margin-top: 8px; }
+  .bar-pct   { font-size: .7rem; margin-top: 2px; }
+
+  /* Abbreviation table */
+  .abbr-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+  .abbr-item { background: var(--surface); border: 1px solid var(--surface2); border-radius: 10px; padding: 10px 14px; }
+  .abbr-term { font-size: .82rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+  .abbr-desc { font-size: .78rem; color: var(--text2); }
+
+  /* Step list */
+  .step-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .step-item { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num  { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff;
+               display: flex; align-items: center; justify-content: center; font-size: .78rem; font-weight: 700; flex-shrink: 0; }
+  .step-body { flex: 1; background: var(--surface); border: 1px solid var(--surface2); border-radius: 9px; padding: 8px 12px; font-size: .88rem; transition: transform .2s, box-shadow .2s; }
+  .step-body:hover { transform: translateX(4px); box-shadow: 0 3px 12px rgba(0,0,0,.07); }
+
+  /* Math display scale */
+  .katex-display { font-size: .88rem !important; overflow-x: auto; }
+  .math-sm .katex { font-size: .82rem !important; }
+
+  /* Navigation */
+  .nav { position: fixed; bottom: 22px; right: 28px; display: flex; gap: 8px; z-index: 100; }
+  .nav button {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--surface2);
+    background: var(--surface); color: var(--text); font-size: .95rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08); transition: all .25s ease;
+  }
+  .nav button:hover { transform: scale(1.1); background: var(--accent); color: #fff; border-color: var(--accent); }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,var(--accent),var(--accent3)); transition: width .35s ease; z-index: 100; }
+  .page-num  { position: fixed; bottom: 26px; left: 28px; font-size: .8rem; color: var(--text3); z-index: 100; font-variant-numeric: tabular-nums; }
+
+  /* Logo bar */
+  .logo-bar { display: flex; align-items: center; justify-content: center; gap: 30px; margin-bottom: 22px; }
+  .logo-bar img { height: 50px; object-fit: contain; }
+  .logo-bar .logo-divider { width: 1px; height: 38px; background: var(--surface2); }
+
+  /* Timeline phases */
+  .timeline { display: flex; gap: 0; align-items: stretch; margin-top: 14px; }
+  .tl-phase { flex: 1; background: var(--surface); border: 1px solid var(--surface2); border-radius: var(--radius); padding: 14px; margin: 0 5px; transition: transform .2s, box-shadow .2s; }
+  .tl-phase:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+  .tl-num   { font-size: 1.8rem; font-weight: 800; opacity: .12; line-height: 1; margin-bottom: 4px; }
+  .tl-title { font-size: .88rem; font-weight: 700; margin-bottom: 5px; }
+  .tl-detail { font-size: .78rem; color: var(--text2); line-height: 1.5; }
+
+  /* Pain point numbered cards */
+  .pain-card { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--surface2); border-radius: var(--radius); padding: 14px 16px; transition: transform .2s, box-shadow .2s; }
+  .pain-card:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+  .pain-num  { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .82rem; flex-shrink: 0; color: #fff; }
+  .pain-body { flex: 1; }
+  .pain-q    { font-size: .9rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .pain-detail { font-size: .82rem; color: var(--text2); line-height: 1.5; }
+
+  /* Appendix section label */
+  .appendix-label { display: inline-block; background: var(--surface2); color: var(--text3); border-radius: 6px; padding: 3px 10px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .slide.active .slide-inner { animation: fadeUp .45s ease-out; }
+  @keyframes countUp { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: scale(1); } }
+  .slide.active .big-number { animation: countUp .4s ease-out; }
+
+  @media (max-width: 900px) {
+    .slide { padding: 22px 18px; }
+    h1 { font-size: 1.9rem; } h2 { font-size: 1.3rem; }
+    .grid2,.grid3,.grid4,.abbr-grid { grid-template-columns: 1fr; }
+    .flow,.timeline { flex-direction: column; }
+  }
+
+/* ===== Full-screen responsive fix ===== */
+html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+body { min-height:100vh; min-height:100dvh; }
+.slide { width:100vw !important; height:100vh !important; height:100dvh !important; box-sizing:border-box; overflow:hidden; }
+.slide.active { display:flex !important; }
+.slide-inner { width:100% !important; height:100% !important; max-width:none !important; max-height:none !important; margin:0 !important; box-sizing:border-box; }
+img, video, iframe, canvas, svg { max-width:100%; max-height:100%; object-fit:contain; }
+table { width:100%; table-layout:fixed; }
+/* ======================================= */
+
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="page-num"  id="pageNum"></div>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide active">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="logo-bar">
+      <img src="Towngas_2024_01.png" alt="Towngas">
+      <div class="logo-divider"></div>
+      <img src="IEDA_brm.png" alt="HKUST IEDA" style="height:46px;">
+    </div>
+    <h1 style="font-size:2.6rem;">Inventory Allocation Optimisation<br>at Towngas Hong Kong</h1>
+    <p class="subtitle">A Seven-Day Rolling Horizon MILP Approach</p>
+    <div style="display:flex; gap:0; justify-content:center; max-width:700px; margin:0 auto 24px; border:1px solid var(--surface2); border-radius:var(--radius); overflow:hidden;">
+      <div style="flex:1; padding:14px 20px; border-right:1px solid var(--surface2); text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--accent);">CHAN, Jannisa</div>
+        <div style="font-size:.75rem; color:var(--text3);">20900000</div>
+      </div>
+      <div style="flex:1; padding:14px 20px; border-right:1px solid var(--surface2); text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--accent);">WONG, Cheng Loong</div>
+        <div style="font-size:.75rem; color:var(--text3);">20916293</div>
+      </div>
+      <div style="flex:1; padding:14px 20px; text-align:center;">
+        <div style="font-size:1rem; font-weight:700; color:var(--accent);">YUEN, Yu Yung</div>
+        <div style="font-size:.75rem; color:var(--text3);">20965749</div>
+      </div>
+    </div>
+    <p style="font-size:.84rem; color:var(--text3);">
+      Supervisor: Professor ZHANG, Jiheng &nbsp;·&nbsp; Teaching Assistant: NG, Cho Yin<br>
+      Department of Industrial Engineering and Decision Analytics, HKUST &nbsp;·&nbsp; May 2026
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 2 — TABLE OF CONTENTS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent);">Presentation Roadmap</p>
+    <h2>Table of <span class="accent">Contents</span></h2>
+    <div class="grid2" style="margin-top:18px; gap:14px;">
+      <div class="card card-red" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--red); opacity:.2; line-height:1; flex-shrink:0;">01</div>
+        <div>
+          <h3 style="color:var(--red);">Background &amp; Problem</h3>
+          <p>Towngas business context, distribution network overview, and the daily operational challenges that motivated this project.</p>
+        </div>
+      </div>
+      <div class="card card-purple" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--accent2); opacity:.2; line-height:1; flex-shrink:0;">02</div>
+        <div>
+          <h3 style="color:var(--accent2);">Proposed Solution</h3>
+          <p>Why a rolling-horizon MILP was chosen over alternative methods. Literature context and justification for the modelling approach.</p>
+        </div>
+      </div>
+      <div class="card card-accent" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--accent); opacity:.2; line-height:1; flex-shrink:0;">03</div>
+        <div>
+          <h3>Mathematical Formulation &amp; Simulation</h3>
+          <p>Full theoretical model, scope choices, data assumptions, and the backtesting methodology used to validate performance.</p>
+        </div>
+      </div>
+      <div class="card card-green" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--accent3); opacity:.2; line-height:1; flex-shrink:0;">04</div>
+        <div>
+          <h3 style="color:var(--accent3);">Results &amp; Evaluation</h3>
+          <p>Cost comparison against three baselines, cumulative-cost and inventory-level charts, and interpretation of key findings.</p>
+        </div>
+      </div>
+      <div class="card card-orange" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--warn); opacity:.2; line-height:1; flex-shrink:0;">05</div>
+        <div>
+          <h3 style="color:var(--warn);">Prototype &amp; Integration</h3>
+          <p>Decision-support web application and the integration pipeline for deploying the model into Towngas daily operations.</p>
+        </div>
+      </div>
+      <div class="card card-pink" style="display:flex; gap:14px; align-items:flex-start;">
+        <div style="font-size:2rem; font-weight:800; color:var(--pink); opacity:.2; line-height:1; flex-shrink:0;">06</div>
+        <div>
+          <h3 style="color:var(--pink);">Limitations &amp; Future Work</h3>
+          <p>Honest assessment of current model scope, six limitations with research-backed improvement directions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 3 — TOWNGAS BACKGROUND
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--red);">Section 1 — Background</p>
+    <h2>About <span class="accent">Towngas Hong Kong</span></h2>
+    <div class="grid2" style="align-items:start; gap:20px;">
+      <div>
+        <div class="card card-accent" style="margin-bottom:14px;">
+          <h3>Company Overview</h3>
+          <ul>
+            <li>Founded in <strong>1862</strong> — one of Hong Kong's oldest utility companies</li>
+            <li>Core business: piped gas supply, gas appliances, kitchen equipment, water heaters, and household products</li>
+            <li>Serves residential and commercial customers across Hong Kong Island, Kowloon, and the New Territories</li>
+            <li>Operates a multi-echelon <strong>physical distribution network</strong> for thousands of appliance SKUs</li>
+          </ul>
+        </div>
+        <div class="grid3" style="margin-top:0; gap:10px;">
+          <div class="card" style="text-align:center; border-top:3px solid var(--red); border-left:none; padding:14px 10px;">
+            <div class="big-number" style="color:var(--red); font-size:1.8rem;">160+</div>
+            <div class="big-label">Years of Operation</div>
+          </div>
+          <div class="card" style="text-align:center; border-top:3px solid var(--accent2); border-left:none; padding:14px 10px;">
+            <div class="big-number" style="color:var(--accent2); font-size:1.8rem;">511+</div>
+            <div class="big-label">Appliance SKUs</div>
+          </div>
+          <div class="card" style="text-align:center; border-top:3px solid var(--accent3); border-left:none; padding:14px 10px;">
+            <div class="big-number" style="color:var(--accent3); font-size:1.8rem;">4</div>
+            <div class="big-label">Logistics Nodes</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <!-- Towngas image / placeholder -->
+        <div style="border-radius:var(--radius); overflow:hidden; margin-bottom:12px; border:1px solid var(--surface2);">
+          <img src="Towngas_2024_01.png" alt="Towngas"
+               style="width:100%; max-height:180px; object-fit:contain; background:var(--surface); padding:16px;"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="img-placeholder" style="display:none; min-height:140px;">
+            <div class="ph-icon">🏢</div>
+            <div>Towngas corporate image<br><span style="font-size:.72rem;">(replace with official photo)</span></div>
+          </div>
+        </div>
+        <div class="note-box" style="margin-top:0;">
+          <p style="font-size:.88rem;"><strong>Focus of this project:</strong> The logistics team makes daily decisions about how to move <em>appliance goods</em> through the distribution network — an operationally intensive process currently handled through experience and judgment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 4 — DISTRIBUTION NETWORK + PAIN POINTS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--red);">Section 1 — Problem</p>
+    <h2>Distribution Network &amp; <span class="accent">Daily Challenges</span></h2>
+    <div class="grid2" style="gap:18px; align-items:start;">
+      <div>
+        <!-- Network diagram placeholder -->
+        <div class="img-placeholder" style="min-height:160px; margin-bottom:12px;">
+          <div class="ph-icon">🗺️</div>
+          <div style="font-weight:600; margin-bottom:4px;">Towngas Network Diagram</div>
+          <div style="font-size:.74rem;">(Insert diagram showing CT → NP/TM ⇄ EX → Customer;<br>circle the optimisation zone)</div>
+        </div>
+        <div class="flow" style="margin-top:0; font-size:.8rem; gap:6px;">
+          <div class="flow-step hl-purple" style="text-align:center; padding:8px 10px;">
+            <strong>CT</strong><br><span style="font-size:.7rem; color:var(--text3);">Cargo Terminal</span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step hl" style="text-align:center; padding:8px 10px;">
+            <strong>NP / TM</strong><br><span style="font-size:.7rem; color:var(--text3);">Internal WH</span>
+          </div>
+          <div class="flow-arrow">⇄</div>
+          <div class="flow-step hl-orange" style="text-align:center; padding:8px 10px;">
+            <strong>EX</strong><br><span style="font-size:.7rem; color:var(--text3);">External WH</span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step hl-green" style="text-align:center; padding:8px 10px;">
+            <strong>Customer</strong>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div class="pain-card">
+          <div class="pain-num" style="background:var(--accent2);">Q1</div>
+          <div class="pain-body">
+            <div class="pain-q">CT Container Collection</div>
+            <div class="pain-detail">Which containers should we collect from CT? When should we collect them? Should we deliver to NP, TM, or directly to EX when both internal warehouses are near capacity?</div>
+          </div>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num" style="background:var(--accent);">Q2</div>
+          <div class="pain-body">
+            <div class="pain-q">Internal Transfers (NP ↔ TM)</div>
+            <div class="pain-detail">What goods should be transferred between internal warehouses? How much can we move given the daily transfer and warehouse capacity constraints?</div>
+          </div>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num" style="background:var(--warn);">Q3</div>
+          <div class="pain-body">
+            <div class="pain-q">External Warehouse (EX) Management</div>
+            <div class="pain-detail">When should we offload goods to EX, and what should we retrieve? How do we pre-position inventory so customers can retrieve their orders promptly?</div>
+          </div>
+        </div>
+        <div class="pain-card">
+          <div class="pain-num" style="background:var(--red);">Q4</div>
+          <div class="pain-body">
+            <div class="pain-q">Demand Estimation</div>
+            <div class="pain-detail">What is the approximate demand for each good over the coming week? How do we plan proactively when future orders are not yet fully confirmed?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="insight-box" style="margin-top:10px;">
+      <p style="font-size:.92rem; text-align:center;"><strong>Core question:</strong> How do we <em>pre-position inventory</em> across CT, NP, TM, and EX — so that <em>backlog is minimised</em> and <em>total operational cost is reduced</em>?</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 5 — PROPOSED SOLUTION + ABBREVIATIONS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent2);">Section 2 — Proposed Solution</p>
+    <h2>Our Solution: <span class="accent">7-Day Rolling Horizon MILP</span></h2>
+    <div class="grid2" style="gap:18px; align-items:start;">
+      <div>
+        <div class="card card-accent" style="margin-bottom:12px;">
+          <h3>What We Propose</h3>
+          <ul>
+            <li>A <strong>Mixed-Integer Linear Programme (MILP)</strong> that jointly optimises all four daily decisions (CT collection, NP↔TM transfers, EX offload/retrieval) simultaneously</li>
+            <li>Solved once (or twice) per working day with a <strong>7-day lookahead window</strong> — only day-1 decisions are executed; the horizon rolls forward each morning</li>
+            <li>Acts as a <strong>decision-support tool</strong>, not an autonomous system — managerial review and approval remain essential</li>
+          </ul>
+        </div>
+        <div class="card card-green">
+          <h3 style="color:var(--accent3);">Why This Helps Towngas</h3>
+          <ul>
+            <li><strong>Optimises total cost</strong> — not just today's decision in isolation, but the full week's trade-offs</li>
+            <li><strong>Consistent and auditable</strong> — every recommendation has a clear cost rationale</li>
+            <li><strong>Complements expertise</strong> — the model captures constraints and costs; the manager adds domain knowledge and operational context that the model cannot see</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px; color:var(--text2); font-size:.88rem; text-transform:uppercase; letter-spacing:.08em;">Key Abbreviations Used in This Presentation</h3>
+        <div class="abbr-grid">
+          <div class="abbr-item"><div class="abbr-term">NP</div><div class="abbr-desc">North Point internal warehouse (HK Island)</div></div>
+          <div class="abbr-item"><div class="abbr-term">TM</div><div class="abbr-desc">Tuen Mun internal warehouse (New Territories)</div></div>
+          <div class="abbr-item"><div class="abbr-term">EX</div><div class="abbr-desc">External (third-party overflow) warehouse</div></div>
+          <div class="abbr-item"><div class="abbr-term">CT</div><div class="abbr-desc">Cargo Terminal — overseas container arrival point</div></div>
+          <div class="abbr-item"><div class="abbr-term">FSP</div><div class="abbr-desc">Free Storage Period (supplier-negotiated grace period at CT)</div></div>
+          <div class="abbr-item"><div class="abbr-term">MILP</div><div class="abbr-desc">Mixed-Integer Linear Programme</div></div>
+          <div class="abbr-item"><div class="abbr-term">RH</div><div class="abbr-desc">Rolling Horizon (re-optimise each day)</div></div>
+          <div class="abbr-item"><div class="abbr-term">CBM</div><div class="abbr-desc">Cubic Metre (volumetric unit for goods)</div></div>
+          <div class="abbr-item"><div class="abbr-term">SKU</div><div class="abbr-desc">Stock-Keeping Unit (individual product code)</div></div>
+          <div class="abbr-item"><div class="abbr-term">APPL</div><div class="abbr-desc">Appliance goods category (simulation scope)</div></div>
+          <div class="abbr-item"><div class="abbr-term">SAP</div><div class="abbr-desc">Towngas enterprise resource planning system</div></div>
+          <div class="abbr-item"><div class="abbr-term">HKD</div><div class="abbr-desc">Hong Kong Dollar</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 5b — WHY MILP + ROLLING HORIZON?
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent2);">Section 2 — Method Justification</p>
+    <h2>Why MILP with <span class="accent">Rolling Horizon?</span></h2>
+    <table style="margin-bottom:12px;">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Optimality</th>
+          <th>Data Requirement</th>
+          <th>Interpretability</th>
+          <th>Runtime</th>
+          <th>Fit for This Problem</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(26,109,212,.05);">
+          <td><strong style="color:var(--accent);">MILP + Rolling Horizon</strong></td>
+          <td><span class="tag tag-green">Provable</span></td>
+          <td>Confirmed orders + costs</td>
+          <td><span class="tag tag-green">High</span></td>
+          <td>Seconds per day</td>
+          <td><strong style="color:var(--accent3);">✓ Our choice</strong></td>
+        </tr>
+        <tr>
+          <td>Greedy / Heuristic</td>
+          <td><span class="tag tag-red">None</span></td>
+          <td>Minimal</td>
+          <td><span class="tag tag-green">High</span></td>
+          <td>Near-instant</td>
+          <td>Baseline for comparison</td>
+        </tr>
+        <tr>
+          <td>Stochastic Programming</td>
+          <td><span class="tag tag-blue">Scenario-based</span></td>
+          <td>Demand distributions</td>
+          <td><span class="tag tag-orange">Low</span></td>
+          <td>Hours</td>
+          <td>Overkill; demand largely deterministic here</td>
+        </tr>
+        <tr>
+          <td>Reinforcement Learning</td>
+          <td><span class="tag tag-orange">Policy-based</span></td>
+          <td>Large training set</td>
+          <td><span class="tag tag-red">Low</span></td>
+          <td>High (train)</td>
+          <td>Black-box; hard to justify to managers</td>
+        </tr>
+        <tr>
+          <td>Simulation-Optimisation</td>
+          <td><span class="tag tag-orange">Approximate</span></td>
+          <td>Full demand simulation</td>
+          <td><span class="tag tag-orange">Medium</span></td>
+          <td>High</td>
+          <td>Useful future extension, not day-1 deployment</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="grid3" style="margin-top:10px; gap:12px;">
+      <div class="card card-accent">
+        <h3>Deterministic-Equivalent is Appropriate</h3>
+        <p>Project and prepick orders — which dominate APPL demand — are confirmed days in advance. Stochastic programming adds model complexity without clear benefit when the uncertainty is already small (Bertsimas &amp; Thiele, 2006).</p>
+      </div>
+      <div class="card card-green">
+        <h3 style="color:var(--accent3);">Provable Optimality &amp; Auditability</h3>
+        <p>Gurobi certifies solution quality with an optimality gap. Each daily decision has a quantified cost rationale — essential for managerial trust and regulatory transparency (Wolsey, 1998).</p>
+      </div>
+      <div class="card card-purple">
+        <h3 style="color:var(--accent2);">Rolling Horizon Handles Non-Stationarity</h3>
+        <p>New containers arrive daily; orders are updated throughout the week. Rolling horizon re-optimises with fresh data each day, naturally correcting for forecast errors (Garcia et al., 1989; Clark &amp; Scarf, 1960).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 6 — FULL THEORETICAL MODEL (PART 1: SETS, VARS, OBJECTIVE)
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent);">Section 3 — Mathematical Formulation</p>
+    <h2>Full Theoretical Model: <span class="accent">Formulation</span></h2>
+    <div class="grid2" style="align-items:start; gap:16px;">
+      <div>
+        <div class="card card-accent" style="margin-bottom:10px;">
+          <h3>Sets &amp; Indices</h3>
+          <div class="math-sm">
+            $\mathcal{I}$ — SKUs; $\mathcal{W} = \{\mathrm{NP,TM}\}$ — internal warehouses; $\mathcal{C}$ — CT containers;<br>
+            $\mathcal{T} = \{1,\ldots,H\}$ — horizon ($H=7$); $\mathcal{H}$ — holidays; $\mathcal{W}^{+} = \mathcal{T}\setminus\mathcal{H}$ — working days;<br>
+            $\mathcal{P}$ — active project/prepick order lines
+          </div>
+        </div>
+        <div class="card card-purple" style="margin-bottom:10px;">
+          <h3 style="color:var(--accent2);">Key Decision Variables</h3>
+          <div class="math-sm" style="line-height:1.9;">
+            $\delta_{c,w,t} \in \{0,1\}$ — collect container $c$ to warehouse $w$ on day $t$<br>
+            $y^{w\to w'}_{i,t} \geq 0$ — transfer SKU $i$ from $w$ to $w'$<br>
+            $x^{\mathrm{EX}\to w}_{i,t},\; x^{w\to\mathrm{EX}}_{i,t} \geq 0$ — EX retrieve / offload<br>
+            $s_{i,w,t} \geq 0$ — walk-in lost sales; $\;B_{i,w,t} \geq 0$ — backlog<br>
+            $I_{i,w,t} \in \mathbb{R}$ — signed inventory position; $\;\eta_{c,t} \in [0,1]$ — CT overstay indicator
+          </div>
+        </div>
+        <div class="card card-orange">
+          <h3 style="color:var(--warn);">Cost Terms in Objective (symbols only)</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 14px; margin-top:4px;">
+            <div style="font-size:.8rem;"><strong>(A)</strong> EX daily holding: $h^{\mathrm{EX}}_d$</div>
+            <div style="font-size:.8rem;"><strong>(E)</strong> Lost sales penalty: $p_i$</div>
+            <div style="font-size:.8rem;"><strong>(B)</strong> EX arrival surcharge: $h^{\mathrm{EX}}_a$</div>
+            <div style="font-size:.8rem;"><strong>(F)</strong> Backlog cost: $b_i$</div>
+            <div style="font-size:.8rem;"><strong>(C)</strong> EX retrieval: $c^{\mathrm{ret}}_{\min}, c^{\mathrm{ret}}_{\mathrm{CBM}}$</div>
+            <div style="font-size:.8rem;"><strong>(G)</strong> Space opportunity: $\omega^w$</div>
+            <div style="font-size:.8rem;"><strong>(D)</strong> EX offloading: $F^{w\to\mathrm{EX}}_{20}, F^{w\to\mathrm{EX}}_{40}$</div>
+            <div style="font-size:.8rem;"><strong>(H)</strong> Terminal value: $\gamma^-, \gamma^+$</div>
+            <div style="font-size:.8rem;"><strong>(I)</strong> CT transport: $F^{\mathrm{CT}}_{20}, F^{\mathrm{CT}}_{40}$</div>
+            <div style="font-size:.8rem;"><strong>(J)</strong> CT overstay: $h^{\mathrm{CT}}$</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-top:3px solid var(--accent); border-left:none; margin-bottom:10px;">
+          <h3>Objective Function</h3>
+          <div class="math-sm">$$
+\min \sum_{t \in \mathcal{T}} \gamma^{t-1}\!\Bigl[
+\underbrace{h^{\mathrm{EX}}_d \!\sum_i v_i I^{\mathrm{EX}}_{i,t}}_{\text{(A)}}
++ \underbrace{h^{\mathrm{EX}}_a \!\sum_i v_i x^{w\to\mathrm{EX}}_{i,t}}_{\text{(B)}}
++ \underbrace{\sum_w R^{\mathrm{EX}\to w}_t}_{\text{(C)}}
++ \underbrace{\sum_w (F^{w\to\mathrm{EX}}_{20} n^{20}_t + F^{w\to\mathrm{EX}}_{40} n^{40}_t)}_{\text{(D)}}
+$$
+$$
++ \underbrace{\sum_{i,w} p_i s_{i,w,t}}_{\text{(E)}}
++ \underbrace{\sum_{i,w} b_i B_{i,w,t}}_{\text{(F)}}
++ \underbrace{\sum_{i,w} \omega^w v_i \delta^+_{i,w,t}}_{\text{(G)}}
++ \underbrace{\sum_{c,w} F^{\mathrm{CT}}_{|V_c|} \delta_{c,w,t}}_{\text{(I)}}
++ \underbrace{\sum_c h^{\mathrm{CT}} V_c \eta_{c,t}}_{\text{(J)}}
+\Bigr]$$
+$$+ \gamma^{H-1}\underbrace{\sum_{i,w}\bigl[\gamma^- \delta^{-,H}_{i,w} + \gamma^+ \omega^w v_i \delta^{+,H}_{i,w}\bigr]}_{\text{(H) Terminal value}}$$</div>
+        </div>
+        <div class="insight-box" style="margin-top:0;">
+          <p style="font-size:.82rem;"><strong>Discount factor $\gamma^{t-1}$:</strong> weights day-1 costs at full value; progressively discounts future days reflecting decreasing forecast reliability. Future decisions will be revised as the horizon rolls forward.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 6b — FULL THEORETICAL MODEL: KEY CONSTRAINTS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent);">Section 3 — Mathematical Formulation</p>
+    <h2>Full Theoretical Model: <span class="accent">Key Constraints</span></h2>
+    <div class="grid2" style="align-items:start; gap:16px;">
+      <div>
+        <div class="card" style="border-top:3px solid var(--accent2); border-left:none; margin-bottom:10px;">
+          <h3 style="color:var(--accent2);">Inventory Balance — Internal Warehouses</h3>
+          <div class="math-sm">$$I_{i,w,t} = I_{i,w,t-1} - B_{i,w,t-1} + r_{i,w,t} + \mathrm{CT}_{i,w,t}$$
+$$+ y^{w'\to w}_{i,t} - y^{w\to w'}_{i,t} + x^{\mathrm{EX}\to w}_{i,t} - x^{w\to\mathrm{EX}}_{i,t}$$
+$$- D^{\mathrm{det}}_{i,w,t} - D^{\mathrm{sto}}_{i,w,t} + u_{i,w,t} + s_{i,w,t}$$
+<span style="font-size:.75rem;">where $\mathrm{CT}_{i,w,t} = \sum_c a_{i,c}\,\delta_{c,w,t}$</span></div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent3); border-left:none; margin-bottom:10px;">
+          <h3 style="color:var(--accent3);">Warehouse Capacity</h3>
+          <div class="math-sm">$$\sum_i v_i \max(0, I_{i,w,t}) \leq K^w \quad \forall w \in \mathcal{W},\; t \in \mathcal{T}$$</div>
+          <p style="font-size:.8rem; margin-top:4px;">$K^{\mathrm{NP}}$ and $K^{\mathrm{TM}}$ are confirmed APPL-specific capacities (see Appendix A).</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--warn); border-left:none;">
+          <h3 style="color:var(--warn);">Internal Transfer Capacity</h3>
+          <div class="math-sm">$$\sum_i \frac{v_i}{V^w_P} y^{w\to w'}_{i,t} \leq n^{\mathrm{trips}} \cdot P^{\mathrm{trip}} \quad \forall t \in \mathcal{W}^+$$</div>
+          <p style="font-size:.8rem; margin-top:4px;">$n^{\mathrm{trips}}$ round trips per day, each holding at most $P^{\mathrm{trip}}$ pallets.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-top:3px solid var(--accent); border-left:none; margin-bottom:10px;">
+          <h3>CT Collection — Single Assignment &amp; Availability</h3>
+          <div class="math-sm">$$\sum_w \sum_{t \in \mathcal{W}^+} \delta_{c,w,t} \leq 1 \quad \forall c \in \mathcal{C} \tag{single collection}$$
+$$\delta_{c,w,t} = 0 \;\text{ if }\; t < \tau_c \tag{availability}$$</div>
+          <p style="font-size:.8rem; margin-top:4px;">Each container is collected at most once; cannot be collected before its CT arrival day $\tau_c$.</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--red); border-left:none; margin-bottom:10px;">
+          <h3 style="color:var(--red);">CT Intake Capacity</h3>
+          <div class="math-sm">$$\sum_{i,c} v_i\, a_{i,c}\, \delta_{c,w,t} \leq P^{\mathrm{intake}}_w \quad \forall w \in \mathcal{W},\; t \in \mathcal{W}^+$$</div>
+          <p style="font-size:.8rem; margin-top:4px;">Daily CBM-based intake limits $P^{\mathrm{NP}}_{\mathrm{intake}}$ and $P^{\mathrm{TM}}_{\mathrm{intake}}$ (see Appendix A).</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent2); border-left:none;">
+          <h3 style="color:var(--accent2);">CT Overstay Indicator</h3>
+          <div class="math-sm">$$\eta_{c,t} \leq 1 - \sum_w \sum_{\tau \leq t} \delta_{c,w,\tau}, \quad t \geq \bar{\tau}^{\mathrm{FSP}}_c$$</div>
+          <p style="font-size:.8rem; margin-top:4px;">$\eta_{c,t} = 1$ if container $c$ remains uncollected past its FSP end day $\bar{\tau}^{\mathrm{FSP}}_c = \tau_c + F_c - 1$.</p>
+        </div>
+        <div class="insight-box" style="margin-top:10px;">
+          <p style="font-size:.82rem;"><strong>Does this theoretical model work in practice?</strong> It captures the full problem — but requires data (walk-in demand, allocation targets) not available for backtesting. The next slide explains how we adapt it for simulation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 7 — SIMULATION METHODOLOGY + SCOPE ASSUMPTIONS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent3);">Section 3 — Simulation Methodology</p>
+    <h2>Adapting the Model for <span class="accent">Backtesting</span></h2>
+    <div class="grid2" style="align-items:start; gap:16px;">
+      <div>
+        <div class="card card-orange" style="margin-bottom:10px;">
+          <h3 style="color:var(--warn);">Simplifications from Theoretical → Simulation-Ready</h3>
+          <table style="margin-top:4px; font-size:.78rem;">
+            <thead><tr><th>Feature</th><th>Status</th><th>Reason</th></tr></thead>
+            <tbody>
+              <tr><td>Walk-in demand $D^{\mathrm{sto}}$</td><td><span class="badge-removed">Removed</span></td><td>APPL goods not sold at counter</td></tr>
+              <tr><td>Lost-sales variable $s_{i,w,t}$</td><td><span class="badge-removed">Removed</span></td><td>No walk-in demand to lose</td></tr>
+              <tr><td>Allocation targets $T_{i,w}$</td><td><span class="badge-removed">Removed</span></td><td>No reliable per-SKU forecast from 1 month</td></tr>
+              <tr><td>Signed inventory $I_{i,w,t}$</td><td><span class="badge-changed">Changed</span></td><td>→ Physical on-hand $I^{\mathrm{on}}_{i,w,t}\geq 0$</td></tr>
+              <tr><td>CT transport cost</td><td><span class="badge-changed">Changed</span></td><td>→ Per-size: $F^{\mathrm{CT}}_{20}$ vs $F^{\mathrm{CT}}_{40}$</td></tr>
+              <tr><td>EX retrieval cost</td><td><span class="badge-changed">Changed</span></td><td>→ $\max(c^{\mathrm{ret}}_{\min}, c^{\mathrm{ret}}_{\mathrm{CBM}} \cdot \mathrm{vol})$ linearised</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card card-accent">
+          <h3>Rolling Horizon Mechanics</h3>
+          <div class="step-list" style="margin-top:6px;">
+            <div class="step-item">
+              <div class="step-num" style="background:var(--accent3);">1</div>
+              <div class="step-body">Observe opening inventory, CT container status, 7-day confirmed demand</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" style="background:var(--accent3);">2</div>
+              <div class="step-body">Solve simulation-ready MILP over the 7-day lookahead window</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" style="background:var(--accent3);">3</div>
+              <div class="step-body"><strong>Execute day-1 decisions only</strong> — CT collection, transfers, EX actions</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" style="background:var(--accent3);">4</div>
+              <div class="step-body">Roll forward one working day; repeat for all 26 working days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--text2); font-size:.85rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">Scope Choices &amp; Data Assumptions</h3>
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <div class="card card-green">
+            <h3 style="color:var(--accent3); font-size:.9rem;">Why APPL Goods Only? <span class="badge-ok">Deliberate</span></h3>
+            <ul style="font-size:.82rem;">
+              <li>Revenue significance: APPL is a key product category</li>
+              <li>Data reliability: confirmed per-SKU CBM available for ~511 items</li>
+              <li>Scope for proving the model — not a model limitation</li>
+            </ul>
+          </div>
+          <div class="card card-accent">
+            <h3 style="font-size:.9rem;">Why Only 1 Month (January 2026)? <span class="badge-ok">Deliberate</span></h3>
+            <ul style="font-size:.82rem;">
+              <li>Most complete and recent confirmed dataset available</li>
+              <li>Sufficient for a rigorous proof-of-concept comparison</li>
+              <li>Longer backtest is a planned future extension</li>
+            </ul>
+          </div>
+          <div class="card card-orange">
+            <h3 style="color:var(--warn); font-size:.9rem;">SKU Volume Imputation <span class="badge-ok">Resolved</span></h3>
+            <ul style="font-size:.82rem;">
+              <li>5-tier hierarchy: exact CBM → category median → material group → description-based → global fallback</li>
+            </ul>
+          </div>
+          <div class="card card-red">
+            <h3 style="color:var(--red); font-size:.9rem;">CT Arrival Date Estimation <span class="badge-est">Estimated</span></h3>
+            <ul style="font-size:.82rem;">
+              <li>Estimated as: collection date − ½ × FSP (midpoint assumption)</li>
+              <li>Exact terminal manifests not available — a potential source of small error</li>
+            </ul>
+          </div>
+          <div class="card card-purple">
+            <h3 style="color:var(--accent2); font-size:.9rem;">Free Storage Period Mapping <span class="badge-ok">Resolved</span></h3>
+            <ul style="font-size:.82rem;">
+              <li>Confirmed supplier-level FSP table provided by Towngas (3–21 days by supplier × origin)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 8 — BASELINE MODELS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent3);">Section 4 — Evaluation</p>
+    <h2>How Do We Know the Model Is Good? <span class="accent">Baselines</span></h2>
+    <p style="margin-bottom:12px;">We compare our MILP against three baselines — all sharing the same data, cost parameters, opening inventory, and APPL-only scope.</p>
+    <table>
+      <thead>
+        <tr><th>Dimension</th><th style="color:var(--accent);">MILP (Ours)</th><th style="color:var(--accent3);">Greedy Heuristic</th><th style="color:var(--warn);">Rule-Based Policy</th><th style="color:var(--red);">Actual Operations</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Planning horizon</strong></td><td>7 working days</td><td>Today only</td><td>Today only</td><td>Historical (no explicit plan)</td></tr>
+        <tr><td><strong>CT collection trigger</strong></td><td>Cost-optimal timing over 7 days</td><td>Demand urgency or FSP nearing</td><td>Collect on arrival day — always</td><td>Actual SAP GR date recorded</td></tr>
+        <tr><td><strong>Internal transfers</strong></td><td>Cost-optimal pre-positioning</td><td>Not proactively optimised</td><td>Not proactively optimised</td><td>Historical MVT-313 records</td></tr>
+        <tr><td><strong>EX retrieval trigger</strong></td><td>Cost-optimal (may pre-retrieve)</td><td>Only when backlog exists</td><td>Only when backlog exists</td><td>Reconstructed from overflow</td></tr>
+        <tr><td><strong>Future demand visibility</strong></td><td>Full 7-day confirmed orders</td><td>Today's demand only</td><td>Today's demand only</td><td>N/A</td></tr>
+      </tbody>
+    </table>
+    <div class="grid3" style="margin-top:14px; gap:12px;">
+      <div class="card card-green">
+        <h3 style="color:var(--accent3);">Why Greedy?</h3>
+        <p>Simulates how a busy manager naturally makes decisions — react to today's needs, collect when urgency arises. Represents a reasonable "human heuristic" baseline.</p>
+      </div>
+      <div class="card card-orange">
+        <h3 style="color:var(--warn);">Why Rule-Based?</h3>
+        <p>"Always collect containers immediately on arrival" feels safe and simple. This policy is common in practice — but it ignores whether warehouse space is ready, inflating EX holding costs.</p>
+      </div>
+      <div class="card card-red">
+        <h3 style="color:var(--red);">Why Actual Operations?</h3>
+        <p>The true counterfactual — reconstructed from Towngas's own SAP data. This tells us what the real cost of current practice was, providing the most operationally meaningful comparison.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 9 — EVALUATION RESULTS (bar chart + KPIs)
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent3);">Section 4 — Results</p>
+    <h2>Cost Comparison — <span class="accent">January 2026 (26 Working Days)</span></h2>
+    <div class="grid2" style="gap:20px; align-items:start;">
+      <div>
+        <p style="font-size:.84rem; margin-bottom:10px; color:var(--text2);">Relative total cost (all models indexed to Rule-Based = 100%). Bars show cost component composition; labels show % saving vs actual operation.</p>
+        <!-- CSS Stacked bar chart — percentage indexed -->
+        <div class="bar-chart-wrap" style="height:210px;">
+          <!-- MILP -->
+          <div class="bar-col">
+            <div class="bar-total" style="color:var(--accent);">−27.1% vs Actual</div>
+            <div class="bar-stack" style="height:131px;">
+              <div class="bar-seg" style="height:110px; background:var(--accent);"></div>
+              <div class="bar-seg" style="height:16px; background:var(--accent2);"></div>
+              <div class="bar-seg" style="height:2px; background:var(--accent3);"></div>
+              <div class="bar-seg" style="height:3px; background:var(--warn);"></div>
+            </div>
+            <div class="bar-name" style="color:var(--accent);">MILP</div>
+            <div class="bar-pct" style="color:var(--accent3);">Lowest cost ✓</div>
+          </div>
+          <!-- Greedy -->
+          <div class="bar-col">
+            <div class="bar-total" style="color:var(--accent3);">−13.8% vs Actual</div>
+            <div class="bar-stack" style="height:154px;">
+              <div class="bar-seg" style="height:104px; background:var(--accent);"></div>
+              <div class="bar-seg" style="height:46px; background:var(--accent2);"></div>
+              <div class="bar-seg" style="height:4px; background:var(--accent3);"></div>
+            </div>
+            <div class="bar-name" style="color:var(--accent3);">Greedy</div>
+            <div class="bar-pct" style="color:var(--text3);">Demand-reactive</div>
+          </div>
+          <!-- Rule-based -->
+          <div class="bar-col">
+            <div class="bar-total" style="color:var(--warn);">+11.7% vs Actual</div>
+            <div class="bar-stack" style="height:200px;">
+              <div class="bar-seg" style="height:107px; background:var(--accent);"></div>
+              <div class="bar-seg" style="height:89px; background:var(--accent2);"></div>
+              <div class="bar-seg" style="height:4px; background:var(--accent3);"></div>
+            </div>
+            <div class="bar-name" style="color:var(--warn);">Rule-Based</div>
+            <div class="bar-pct" style="color:var(--text3);">Always collect early</div>
+          </div>
+          <!-- Actual -->
+          <div class="bar-col">
+            <div class="bar-total" style="color:var(--red);">Baseline</div>
+            <div class="bar-stack" style="height:179px;">
+              <div class="bar-seg" style="height:107px; background:var(--accent);"></div>
+              <div class="bar-seg" style="height:33px; background:var(--accent2);"></div>
+              <div class="bar-seg" style="height:6px; background:var(--accent3);"></div>
+              <div class="bar-seg" style="height:33px; background:var(--warn);"></div>
+            </div>
+            <div class="bar-name" style="color:var(--red);">Actual Ops</div>
+            <div class="bar-pct" style="color:var(--text3);">Reconstructed cost</div>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; align-items:center;">
+          <div style="display:flex; align-items:center; gap:5px; font-size:.74rem; color:var(--text2);"><div style="width:11px;height:11px;border-radius:2px;background:var(--accent);"></div>$F^{\mathrm{CT}}$ Transport</div>
+          <div style="display:flex; align-items:center; gap:5px; font-size:.74rem; color:var(--text2);"><div style="width:11px;height:11px;border-radius:2px;background:var(--accent2);"></div>$h^{\mathrm{EX}}_d$ Holding</div>
+          <div style="display:flex; align-items:center; gap:5px; font-size:.74rem; color:var(--text2);"><div style="width:11px;height:11px;border-radius:2px;background:var(--accent3);"></div>$c^{\mathrm{ret}}$ Retrieval</div>
+          <div style="display:flex; align-items:center; gap:5px; font-size:.74rem; color:var(--text2);"><div style="width:11px;height:11px;border-radius:2px;background:var(--warn);"></div>$F^{w\to\mathrm{EX}}$ Offloading</div>
+        </div>
+      </div>
+      <div>
+        <div class="grid2" style="margin-top:0; gap:10px;">
+          <div class="card" style="text-align:center; border-top:3px solid var(--accent3); border-left:none;">
+            <div class="big-number" style="color:var(--accent3);">27.1%</div>
+            <div class="big-label">Cost saving vs Actual</div>
+          </div>
+          <div class="card" style="text-align:center; border-top:3px solid var(--accent2); border-left:none;">
+            <div class="big-number" style="color:var(--accent2);">34.7%</div>
+            <div class="big-label">Cost saving vs Rule-Based</div>
+          </div>
+          <div class="card" style="text-align:center; border-top:3px solid var(--accent); border-left:none;">
+            <div class="big-number" style="color:var(--accent);">15.4%</div>
+            <div class="big-label">Cost saving vs Greedy</div>
+          </div>
+          <div class="card" style="text-align:center; border-top:3px solid var(--warn); border-left:none;">
+            <div class="big-number" style="color:var(--warn);">0</div>
+            <div class="big-label">CT Overstay Cost (MILP)</div>
+          </div>
+        </div>
+        <div class="card card-accent" style="margin-top:10px;">
+          <h3>Why Does Actual Operation Have High EX Offloading?</h3>
+          <p style="font-size:.86rem;">Actual operations collected containers before enough warehouse space was available. Goods overflowed to EX, incurring large offloading costs. The MILP delays collection until space is ready — <em>avoiding overflow</em>.</p>
+        </div>
+        <div class="card card-green" style="margin-top:10px;">
+          <h3 style="color:var(--accent3);">Why Is MILP EX Inventory the Lowest?</h3>
+          <p style="font-size:.86rem;">By timing CT collection to match warehouse availability and demand, the MILP rarely needs EX as a buffer. Rule-based collects too early → fills warehouse → overflows to EX → accumulates $h^{\mathrm{EX}}_d$ charges.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 9b — EVALUATION: CUMULATIVE COST + INVENTORY CHARTS
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent3);">Section 4 — Results</p>
+    <h2>Cumulative Cost &amp; <span class="accent">Inventory Over Time</span></h2>
+    <div class="grid2" style="gap:18px; align-items:start;">
+      <div>
+        <p style="font-size:.82rem; color:var(--text2); margin-bottom:8px;"><strong>Cumulative cost over time</strong> (data truncated to 26 January 2026 — February data not available)</p>
+        <img src="../visualization/cumulative_cost.png" alt="Cumulative cost over time"
+             style="width:100%; border-radius:var(--radius); border:1px solid var(--surface2);"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="img-placeholder" style="display:none; min-height:180px;">
+          <div class="ph-icon">📈</div>
+          <div>Cumulative cost chart<br><code style="font-size:.72rem;">../visualization/cumulative_cost.png</code></div>
+        </div>
+        <div class="insight-box" style="margin-top:8px;">
+          <p style="font-size:.8rem;">The MILP curve stays consistently below all baselines from day 1. The gap widens over time — demonstrating that the lookahead benefit compounds across the month.</p>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:.82rem; color:var(--text2); margin-bottom:8px;"><strong>Inventory levels (CBM)</strong> — NP, TM, and EX over the simulation period</p>
+        <img src="../visualization/inventory_levels_cbm.png" alt="Inventory levels over time"
+             style="width:100%; border-radius:var(--radius); border:1px solid var(--surface2);"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="img-placeholder" style="display:none; min-height:180px;">
+          <div class="ph-icon">📦</div>
+          <div>Inventory levels chart<br><code style="font-size:.72rem;">../visualization/inventory_levels_cbm.png</code></div>
+        </div>
+        <div class="insight-box" style="margin-top:8px;">
+          <p style="font-size:.8rem;">MILP maintains lower EX inventory throughout. Rule-based consistently spills more goods to EX because it collects too early relative to demand. MILP EX is used only as needed — a cost-optimal buffer, not a reactive spillover.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 10 — PROTOTYPE DEMO
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--warn);">Section 5 — Prototype</p>
+    <h2>Decision-Support <span class="accent">Prototype</span></h2>
+    <div class="grid2" style="gap:18px; align-items:start;">
+      <div>
+        <!-- Video placeholder -->
+        <video controls poster="prototype_poster.png" src="prototype_demo.mp4"
+               style="width:100%; border-radius:var(--radius); border:1px solid var(--surface2); background:#1a1f2e; max-height:200px;"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          Your browser does not support HTML5 video.
+        </video>
+        <div class="video-placeholder" style="display:none;">
+          <div class="play-icon">▶</div>
+          <div style="font-weight:600; color:#e2e8f0; margin-bottom:4px;">Prototype Demo Video</div>
+          <div style="font-size:.78rem;">Place <code>prototype_demo.mp4</code> in the same folder to activate</div>
+        </div>
+        <div class="card card-accent" style="margin-top:12px;">
+          <h3>Architecture Flow</h3>
+          <div class="flow" style="margin-top:6px; gap:5px; font-size:.76rem;">
+            <div class="flow-step hl-orange" style="padding:7px 8px; min-width:70px;">Excel<br>Template</div>
+            <div class="flow-arrow" style="font-size:.9rem;">→</div>
+            <div class="flow-step hl" style="padding:7px 8px; min-width:70px;">Data<br>Loader</div>
+            <div class="flow-arrow" style="font-size:.9rem;">→</div>
+            <div class="flow-step hl-purple" style="padding:7px 8px; min-width:70px;">MILP<br>Solve</div>
+            <div class="flow-arrow" style="font-size:.9rem;">→</div>
+            <div class="flow-step hl-green" style="padding:7px 8px; min-width:70px;">Decision<br>Extractor</div>
+            <div class="flow-arrow" style="font-size:.9rem;">→</div>
+            <div class="flow-step hl" style="padding:7px 8px; min-width:70px;">Streamlit<br>UI</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card card-green" style="margin-bottom:12px;">
+          <h3 style="color:var(--accent3);">Prototype Outputs → Pain Points Solved</h3>
+          <table style="margin-top:6px; font-size:.8rem;">
+            <thead><tr><th>Output</th><th>Addresses</th></tr></thead>
+            <tbody>
+              <tr><td><strong>CT Collection Plan</strong> — which containers to collect today &amp; where</td><td>Q1: CT container decisions</td></tr>
+              <tr><td><strong>NP ↔ TM Transfer Decisions</strong> — quantity by SKU</td><td>Q2: Internal transfer optimisation</td></tr>
+              <tr><td><strong>EX Retrieve List</strong> — goods to bring back to warehouse</td><td>Q3: Pre-positioning from EX</td></tr>
+              <tr><td><strong>EX Offload List</strong> — goods to move to external storage</td><td>Q3: Overflow management</td></tr>
+              <tr><td><strong>Full 7-Day Plan</strong> (tabbed) + downloadable Excel</td><td>All Qs: Planning ahead for the week</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card card-purple">
+          <h3 style="color:var(--accent2);">6-Step Daily Workflow</h3>
+          <ol style="font-size:.85rem; padding-left:18px; margin-top:4px;">
+            <li>Update the 7-sheet Excel template with today's inventory &amp; orders</li>
+            <li>Upload template to the Streamlit web app</li>
+            <li>Click <strong>Run Optimisation</strong> — model solves in ~10 seconds</li>
+            <li>Review KPI summary: CT collections, transfers, EX actions</li>
+            <li>Inspect the 7-day tabbed decision plan; adjust if needed</li>
+            <li>Download the Excel plan for record-keeping &amp; dispatch</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 11 — INTEGRATION PIPELINE
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--warn);">Section 5 — Integration</p>
+    <h2>Integrating the Model into <span class="accent">Towngas Operations</span></h2>
+    <div class="grid2" style="gap:18px; align-items:start;">
+      <div>
+        <h3 style="color:var(--text2); font-size:.84rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">End-to-End Pipeline</h3>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num" style="background:var(--accent2);">1</div>
+            <div class="step-body"><strong>Data Export from SAP / ERP</strong> — daily export of confirmed orders, inventory snapshot, GR records. <em>Automatable</em> via scheduled SAP query or API.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="background:var(--accent2);">2</div>
+            <div class="step-body"><strong>Data Cleaning &amp; Preparation</strong> — standardise SKU codes, filter APPL scope (expandable to full SKU set), impute volumes. <em>Automatable</em> once pipeline is built.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="background:var(--accent);">3</div>
+            <div class="step-body"><strong>Model + Prototype (Extended)</strong> — full SKU scope, updated cost parameters $F^{\mathrm{CT}}, h^{\mathrm{EX}}_d,\ldots$ confirmed with Towngas, additional real-world constraints added as needed.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="background:var(--accent3);">4</div>
+            <div class="step-body"><strong>Manager Reviews Output</strong> — checks decisions against ongoing marketing campaigns, exceptional circumstances, and domain knowledge not captured in data.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num" style="background:var(--accent3);">5</div>
+            <div class="step-body"><strong>Approve → Dispatch</strong> — CT collection orders, internal truck routes, EX retrieval/offload instructions.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card card-orange" style="margin-bottom:12px;">
+          <h3 style="color:var(--warn);">AM / PM Dual-Run Concept</h3>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+            <div style="background:rgba(26,109,212,.06); border:1px solid rgba(26,109,212,.2); border-radius:10px; padding:10px 14px; font-size:.86rem;">
+              <strong>Morning Run (AM)</strong> — solve before the first truck departs.<br>Decide: CT container collection for today; AM internal transfer quantities; EX offload if warehouse is near capacity.
+            </div>
+            <div style="background:rgba(10,143,111,.06); border:1px solid rgba(10,143,111,.2); border-radius:10px; padding:10px 14px; font-size:.86rem;">
+              <strong>Afternoon Run (PM)</strong> — re-solve after observing today's actual demand.<br>Decide: PM internal transfer; preview tomorrow's decisions; update EX retrieval plan for next morning.
+            </div>
+          </div>
+        </div>
+        <div class="card card-accent" style="margin-bottom:12px;">
+          <h3>What Towngas Needs to Do</h3>
+          <ul style="font-size:.86rem;">
+            <li>Automate daily SAP data export into the input template</li>
+            <li>Request CT terminal manifest (exact container arrival dates) from terminal operator</li>
+            <li>Run a parallel pilot: model recommends, team observes — without yet changing execution</li>
+            <li>Gradually expand from APPL-only to full SKU scope as CBM data improves</li>
+          </ul>
+        </div>
+        <div class="insight-box">
+          <p style="text-align:center; font-size:.9rem;"><strong>Model alone is not enough. Manager experience alone is not enough.<br>Together, they outperform either.</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 12 — LIMITATIONS & IMPROVEMENTS (part 1)
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--pink);">Section 6 — Limitations &amp; Future Work</p>
+    <h2>Current Limitations &amp; <span class="accent">Improvement Directions</span></h2>
+    <div class="grid2" style="gap:14px; align-items:start;">
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="card card-red">
+          <h3 style="color:var(--red);">L1: Naive Deterministic Demand Assumption</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">The simulation uses confirmed historical demand as a perfect forecast — a favourable assumption not available in live deployment.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Demand forecasting:</strong> LSTM or Prophet models on SAP issue history (Makridakis et al., 2018)</li>
+            <li><strong>Robust optimisation:</strong> budget uncertainty sets replace stochastic distributions (Bertsimas &amp; Thiele, 2006)</li>
+            <li><strong>Stochastic programming:</strong> scenario-based SAA when distributional data is sufficient (Shapiro et al., 2014)</li>
+            <li><strong>Longer rolling window:</strong> 14-day lookahead captures more demand — but increases solve time (time-accuracy trade-off)</li>
+          </ul>
+        </div>
+        <div class="card card-orange">
+          <h3 style="color:var(--warn);">L2: APPL-Only Simulation Scope</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">Capacity constraints do not reflect all product types sharing the same warehouse space.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Full SKU expansion:</strong> extend CBM imputation to spare parts and meters; add all categories to the model</li>
+            <li><strong>SKU clustering:</strong> aggregate slow-moving items into representative groups to manage problem size (Zipkin, 2000)</li>
+            <li><strong>Presolve &amp; variable elimination:</strong> sparse-row techniques to prune zero-activity SKUs before each solve</li>
+          </ul>
+        </div>
+        <div class="card card-purple">
+          <h3 style="color:var(--accent2);">L3: Single-Month Simulation</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">January 2026 is one month — seasonal patterns (Lunar New Year peaks, summer demand) are not captured.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Longer historical backtest:</strong> 12-month rolling window across available SAP history</li>
+            <li><strong>Walk-forward cross-validation:</strong> train on months 1–10, test on 11–12, repeat</li>
+            <li><strong>Seasonal stress tests:</strong> Lunar New Year and mid-year demand peaks as separate scenarios</li>
+          </ul>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="card card-red">
+          <h3 style="color:var(--red);">L4: CT Arrival Date Estimation</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">$\tau_c$ is estimated from delivery documents — errors here affect collection urgency signals.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Terminal manifest API:</strong> direct integration with cargo terminal operator's IT system for real-time $\tau_c$</li>
+            <li><strong>EDI feed:</strong> Electronic Data Interchange link to receive container arrival notifications automatically</li>
+            <li><strong>Confirmed advance notices:</strong> request container arrival dates from suppliers at time of shipment</li>
+          </ul>
+        </div>
+        <div class="card card-orange">
+          <h3 style="color:var(--warn);">L5: Static Cost Parameters</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">$h^{\mathrm{EX}}_d$, $F^{\mathrm{CT}}$, $c^{\mathrm{ret}}$ are fixed constants — real costs may fluctuate with contracts and market conditions.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Dynamic re-calibration:</strong> pull actual invoice data monthly and update cost parameters automatically</li>
+            <li><strong>Sensitivity analysis:</strong> identify which cost parameters the optimal solution is most sensitive to (±10% perturbation)</li>
+            <li><strong>Contract negotiation support:</strong> run the model under alternative EX rate scenarios to inform supplier negotiations</li>
+          </ul>
+        </div>
+        <div class="card card-accent">
+          <h3>L6: Computational Scalability (Full SKU Set)</h3>
+          <p style="font-size:.84rem; margin-bottom:6px;">Expanding to all SKUs and longer horizons will increase the number of binary variables $\delta_{c,w,t}$ substantially.</p>
+          <p style="font-size:.8rem; font-weight:600; color:var(--text); margin-bottom:3px;">Improvement directions:</p>
+          <ul style="font-size:.8rem;">
+            <li><strong>Warm-starting:</strong> initialise Gurobi from yesterday's shifted solution to reduce branch-and-bound time</li>
+            <li><strong>Benders decomposition:</strong> split the CT collection (binary) and inventory (continuous) subproblems (Benders, 1962)</li>
+            <li><strong>LP relaxation bound:</strong> use LP relaxation as a fast lower bound to guide early termination (Wolsey, 1998)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 13 — CONCLUSION
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <p class="section-label" style="color:var(--accent2);">Conclusion</p>
+    <h2>What We <span class="accent">Delivered</span></h2>
+    <div class="grid3" style="margin-bottom:16px; gap:14px;">
+      <div class="card" style="text-align:center; border-top:4px solid var(--accent2); border-left:none;">
+        <div style="font-size:2rem; margin-bottom:8px;">📐</div>
+        <div style="font-weight:700; margin-bottom:4px;">Two MILP Formulations</div>
+        <p style="font-size:.84rem;">Full theoretical model for future deployment; simulation-ready model validated against real January 2026 data.</p>
+      </div>
+      <div class="card" style="text-align:center; border-top:4px solid var(--accent3); border-left:none;">
+        <div style="font-size:2rem; margin-bottom:8px;">📊</div>
+        <div style="font-weight:700; margin-bottom:4px;">Proven Cost Savings</div>
+        <p style="font-size:.84rem;">27.1% reduction vs reconstructed actual operations over 26 simulated working days. All four models compared fairly on identical data.</p>
+      </div>
+      <div class="card" style="text-align:center; border-top:4px solid var(--accent); border-left:none;">
+        <div style="font-size:2rem; margin-bottom:8px;">🖥️</div>
+        <div style="font-weight:700; margin-bottom:4px;">Working Prototype</div>
+        <p style="font-size:.84rem;">Streamlit web application — Excel template in, 7-day decision plan out. Ready for a parallel pilot today.</p>
+      </div>
+    </div>
+    <h3 style="font-size:.85rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:10px;">From Pain Points to Solutions</h3>
+    <table>
+      <thead>
+        <tr><th>Pain Point (from Slide 4)</th><th>Model Component That Addresses It</th><th>Result</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Q1</strong> — CT collection: when, which, where?</td>
+          <td>Binary $\delta_{c,w,t}$ + CT overstay cost $h^{\mathrm{CT}}$ in objective</td>
+          <td>Cost-optimal collection timing — no overstay in simulation</td>
+        </tr>
+        <tr>
+          <td><strong>Q2</strong> — NP ↔ TM transfers under capacity</td>
+          <td>Transfer variables $y^{w\to w'}_{i,t}$ + pallet capacity constraint</td>
+          <td>Pre-positioning aligned to 7-day confirmed demand</td>
+        </tr>
+        <tr>
+          <td><strong>Q3</strong> — EX offload/retrieve and pre-positioning</td>
+          <td>$x^{\mathrm{EX}}, n^{\mathrm{EX}}$ variables + $h^{\mathrm{EX}}_d$ cost incentivise lean EX use</td>
+          <td>Lowest EX inventory and offloading cost of all four models</td>
+        </tr>
+        <tr>
+          <td><strong>Q4</strong> — Approximate demand estimation</td>
+          <td>7-day confirmed order horizon $D^{\mathrm{det}}_{i,w,t}$ as input</td>
+          <td>Decisions based on best available confirmed information</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="insight-box" style="margin-top:12px; text-align:center;">
+      <p><strong>A decision-support tool that combines optimisation with managerial expertise — to make consistently better daily inventory decisions at Towngas.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 14 — APPENDIX A: COST PARAMETERS & CAPACITIES
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="appendix-label">Appendix A</div>
+    <h2>Cost Parameters &amp; <span class="accent">Capacity Values</span></h2>
+    <p style="font-size:.84rem; margin-bottom:12px; color:var(--text2);">All values confirmed by Towngas and used across all four simulation models. These figures are <strong>confidential</strong> and should not be disclosed outside of this presentation.</p>
+    <div class="grid2" style="gap:16px; align-items:start;">
+      <div>
+        <h3 style="font-size:.84rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">Cost Parameters</h3>
+        <table>
+          <thead><tr><th>Symbol</th><th>Description</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>$h^{\mathrm{EX}}_d$</td><td>EX daily storage rate (HKD/m³/day)</td><td>5.0</td></tr>
+            <tr><td>$h^{\mathrm{EX}}_a$</td><td>EX first-day arrival surcharge (HKD/m³)</td><td>70.0</td></tr>
+            <tr><td>$c^{\mathrm{ret}}_{\min}$</td><td>EX retrieval minimum charge (HKD/trip)</td><td>600.0</td></tr>
+            <tr><td>$c^{\mathrm{ret}}_{\mathrm{CBM}}$</td><td>EX retrieval per-CBM rate (HKD/m³)</td><td>96.0</td></tr>
+            <tr><td>$F^{w\to\mathrm{EX}}_{20}$</td><td>EX offloading — 20' container (HKD)</td><td>3,200</td></tr>
+            <tr><td>$F^{w\to\mathrm{EX}}_{40}$</td><td>EX offloading — 40' container (HKD)</td><td>4,900</td></tr>
+            <tr><td>$F^{\mathrm{CT}}_{20}$</td><td>CT transport — 20' container to NP/TM (HKD)</td><td>3,200</td></tr>
+            <tr><td>$F^{\mathrm{CT}}_{40}$</td><td>CT transport — 40' container to NP/TM (HKD)</td><td>4,900</td></tr>
+            <tr><td>$h^{\mathrm{CT}}$</td><td>CT overstay penalty (HKD/m³/day beyond FSP)</td><td>10,000</td></tr>
+            <tr><td>$b$</td><td>Backlog penalty (HKD/unit/day)</td><td>10,000</td></tr>
+            <tr><td>$\gamma$</td><td>Daily discount factor</td><td>1.0 (no discount)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:.84rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">Warehouse &amp; Operational Capacities</h3>
+        <table>
+          <thead><tr><th>Symbol</th><th>Description</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>$K^{\mathrm{NP}}$</td><td>NP APPL storage capacity (m³)</td><td>1,088</td></tr>
+            <tr><td>$K^{\mathrm{TM}}$</td><td>TM APPL storage capacity (m³)</td><td>3,690</td></tr>
+            <tr><td>$P^{\mathrm{NP}}_{\mathrm{intake}}$</td><td>NP daily CT intake limit (CBM/day)</td><td>~72.6</td></tr>
+            <tr><td>$P^{\mathrm{TM}}_{\mathrm{intake}}$</td><td>TM daily CT intake limit (CBM/day)</td><td>~145.2</td></tr>
+            <tr><td>$n^{\mathrm{trips}}$</td><td>Internal transfer round trips per day</td><td>2</td></tr>
+            <tr><td>$P^{\mathrm{trip}}$</td><td>Pallets per internal transfer trip</td><td>10</td></tr>
+            <tr><td>$V^{\mathrm{NP}}_P$</td><td>Pallet volume at NP (m³/pallet)</td><td>2.267</td></tr>
+            <tr><td>$V^{\mathrm{TM}}_P$</td><td>Pallet volume at TM (m³/pallet)</td><td>1.800</td></tr>
+            <tr><td>$F_c$</td><td>Free Storage Period (days, by supplier)</td><td>3 / 7 / 14 / 21</td></tr>
+            <tr><td>$H$</td><td>Rolling horizon length (working days)</td><td>7</td></tr>
+          </tbody>
+        </table>
+        <div class="note-box" style="margin-top:10px;">
+          <p style="font-size:.78rem;">NP intake = 33 pallets × 2.2 m³/pallet/day. TM intake = 66 pallets × 2.2 m³/pallet/day. Capacities are APPL-category specific as confirmed by Towngas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 15 — APPENDIX B: DATA SOURCES
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="appendix-label">Appendix B</div>
+    <h2>Data Sources &amp; <span class="accent">Movement Types</span></h2>
+    <div class="grid2" style="gap:16px; align-items:start;">
+      <div>
+        <h3 style="font-size:.84rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">Primary Data Files Provided by Towngas</h3>
+        <table>
+          <thead><tr><th>#</th><th>File / Source</th><th>Contents &amp; Use</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-blue">1</span></td>
+              <td><strong>Dec 2025 Inventory Snapshot</strong></td>
+              <td>Stock quantity per SKU per location → opening inventory $I^0_{i,w}$ for NP and TM</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">2</span></td>
+              <td><strong>Jan 2026 Transaction Log</strong></td>
+              <td>All SAP movement types (MVT 901, 903, 313, 315) → demand reconstruction, transfer history, exogenous supply</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">3</span></td>
+              <td><strong>Jan 2026 Goods Receipt Log</strong></td>
+              <td>MVT 101 container collections → CT container contents, collection dates, destination warehouses</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">4</span></td>
+              <td><strong>SKU Master (APPL &amp; White Goods)</strong></td>
+              <td>~511 appliance codes with unit CBM, material group, supplier → APPL scope definition + $v_i$</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-blue">5</span></td>
+              <td><strong>Free Storage Period Lookup (New FSP)</strong></td>
+              <td>Confirmed FSP by supplier × origin → assigns $F_c$ (3–21 days) to each container</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:.84rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px;">SAP Movement Type Classification</h3>
+        <table>
+          <thead><tr><th>MVT</th><th>Description</th><th>Model Use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>101</strong></td><td>Goods receipt from CT (container collection)</td><td>Container contents, collection date, destination</td></tr>
+            <tr><td><strong>313</strong></td><td>NP ↔ TM internal transfer (paired ± rows)</td><td>Actual operation replay — historical transfer $y$</td></tr>
+            <tr><td><strong>315</strong></td><td>Exogenous inflow (local delivery / other plant)</td><td>Exogenous replenishment $r_{i,w,t}$</td></tr>
+            <tr><td><strong>901</strong></td><td>Goods issued to customer (with reference)</td><td>Project/prepick demand $D^{\mathrm{det}}_{i,w,t}$</td></tr>
+            <tr><td><strong>903</strong></td><td>Counter issue (walk-in, no reference)</td><td>Excluded — APPL not sold at counter</td></tr>
+          </tbody>
+        </table>
+        <div class="grid2" style="margin-top:12px; gap:10px;">
+          <div class="card card-green">
+            <h3 style="color:var(--accent3); font-size:.84rem;">Simulation Period</h3>
+            <p style="font-size:.82rem;">2 January 2026 – 31 January 2026 · <strong>26 working days</strong> · Excludes weekends and public holidays identified from GR activity patterns</p>
+          </div>
+          <div class="card card-accent">
+            <h3 style="font-size:.84rem;">Active SKU Count</h3>
+            <p style="font-size:.82rem;">~500 active APPL SKUs per window (SKUs with zero stock, demand, and CT inflow are excluded to reduce problem size)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SLIDE 16 — THANK YOU
+═══════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="logo-bar" style="margin-bottom:18px;">
+      <img src="Towngas_2024_01.png" alt="Towngas" style="height:44px;">
+      <div class="logo-divider"></div>
+      <img src="IEDA_logo_new.png" alt="HKUST IEDA" style="height:40px;">
+    </div>
+    <h1 style="font-size:2.4rem;">Thank You</h1>
+    <p class="subtitle">We welcome your questions and feedback.</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:820px; margin:24px auto 0;">
+      <div style="background:var(--surface); border-radius:12px; padding:16px; border:1px solid var(--surface2);">
+        <div style="font-size:.66rem; text-transform:uppercase; font-weight:700; color:var(--accent2); letter-spacing:.1em; margin-bottom:6px;">Problem</div>
+        <p style="font-size:.8rem; color:var(--text2);">Reactive CT collection, suboptimal EX use, low forward visibility in daily inventory decisions</p>
+      </div>
+      <div style="background:var(--surface); border-radius:12px; padding:16px; border:1px solid var(--surface2);">
+        <div style="font-size:.66rem; text-transform:uppercase; font-weight:700; color:var(--accent3); letter-spacing:.1em; margin-bottom:6px;">Solution</div>
+        <p style="font-size:.8rem; color:var(--text2);">7-day rolling MILP — jointly optimises CT, transfers, and EX decisions every morning</p>
+      </div>
+      <div style="background:var(--surface); border-radius:12px; padding:16px; border:1px solid var(--surface2);">
+        <div style="font-size:.66rem; text-transform:uppercase; font-weight:700; color:var(--accent); letter-spacing:.1em; margin-bottom:6px;">Impact</div>
+        <p style="font-size:.8rem; color:var(--text2);">27.1% cost saving vs actual operations · prototype ready for pilot · clear integration roadmap</p>
+      </div>
+    </div>
+    <div style="margin-top:28px; display:flex; gap:0; justify-content:center; max-width:640px; margin-left:auto; margin-right:auto; border:1px solid var(--surface2); border-radius:var(--radius); overflow:hidden;">
+      <div style="flex:1; padding:12px 18px; border-right:1px solid var(--surface2); text-align:center;">
+        <div style="font-size:.88rem; font-weight:700; color:var(--accent);">CHAN, Jannisa</div>
+        <div style="font-size:.72rem; color:var(--text3);">20900000</div>
+      </div>
+      <div style="flex:1; padding:12px 18px; border-right:1px solid var(--surface2); text-align:center;">
+        <div style="font-size:.88rem; font-weight:700; color:var(--accent);">WONG, Cheng Loong</div>
+        <div style="font-size:.72rem; color:var(--text3);">20916293</div>
+      </div>
+      <div style="flex:1; padding:12px 18px; text-align:center;">
+        <div style="font-size:.88rem; font-weight:700; color:var(--accent);">YUEN, Yu Yung</div>
+        <div style="font-size:.72rem; color:var(--text3);">20965749</div>
+      </div>
+    </div>
+    <p style="margin-top:22px; font-size:.78rem; color:var(--text3);">
+      Supervisor: Professor ZHANG, Jiheng &nbsp;·&nbsp; Teaching Assistant: NG, Cho Yin<br>
+      Department of Industrial Engineering and Decision Analytics, HKUST &nbsp;·&nbsp; May 2026
+    </p>
+  </div>
+</div>
+
+</div><!-- end .deck -->
+
+<!-- Navigation buttons -->
+<div class="nav">
+  <button onclick="toggleOverview()" title="Overview (O)" style="font-size:.72rem;">&#9783;</button>
+  <button onclick="prev()" title="Previous (←)">&#9664;</button>
+  <button onclick="next()" title="Next (→)">&#9654;</button>
+</div>
+
+<!-- Slide overview panel -->
+<div id="overview" style="display:none; position:fixed; inset:0; background:rgba(26,31,46,.88); z-index:200; backdrop-filter:blur(6px); overflow-y:auto; padding:36px;">
+  <div style="max-width:980px; margin:0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;">
+      <h2 style="color:#fff; font-size:1.2rem;">Slide Overview</h2>
+      <button onclick="toggleOverview()" style="background:none; border:1px solid rgba(255,255,255,.3); color:#fff; font-size:1.1rem; padding:5px 13px; border-radius:8px; cursor:pointer;">&#10005; Close</button>
+    </div>
+    <div id="overviewGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(155px,1fr)); gap:12px;"></div>
+  </div>
+</div>
+
+<script>
+const slides    = document.querySelectorAll('.slide');
+const total     = slides.length;
+let current     = 0;
+
+const slideNames = [
+  'Title',
+  'Table of Contents',
+  'Towngas Background',
+  'Network & Pain Points',
+  'Proposed Solution',
+  'Why MILP + RH?',
+  'Full Theoretical Model: Formulation',
+  'Full Theoretical Model: Constraints',
+  'Simulation Methodology',
+  'Baseline Models',
+  'Results: Cost Comparison',
+  'Results: Charts',
+  'Prototype Demo',
+  'Integration Pipeline',
+  'Limitations & Improvements',
+  'Conclusion',
+  'Appendix A: Parameters',
+  'Appendix B: Data Sources',
+  'Thank You'
+];
+
+function go(n) {
+  if (n < 0 || n >= total) return;
+  slides[current].classList.remove('active');
+  current = n;
+  slides[current].classList.add('active');
+  document.getElementById('progress').style.width = ((current / (total - 1)) * 100) + '%';
+  document.getElementById('pageNum').textContent  = (current + 1) + ' / ' + total;
+  if (typeof renderMathInElement === 'function') {
+    renderMathInElement(slides[current], {
+      delimiters: [
+        {left:'$$', right:'$$', display:true},
+        {left:'$',  right:'$',  display:false}
+      ]
+    });
+  }
+}
+
+function next() { go(current + 1); }
+function prev() { go(current - 1); }
+
+function toggleOverview() {
+  const ov = document.getElementById('overview');
+  if (ov.style.display === 'none') {
+    const grid = document.getElementById('overviewGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const btn = document.createElement('button');
+      btn.style.cssText =
+        'background:var(--surface);border:2px solid ' +
+        (i === current ? 'var(--accent)' : 'var(--surface2)') +
+        ';border-radius:10px;padding:14px 9px;cursor:pointer;text-align:center;' +
+        'transition:border-color .2s,transform .2s;width:100%;';
+      btn.innerHTML =
+        '<div style="font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:3px;">' + (i + 1) + '</div>' +
+        '<div style="font-size:.7rem;color:var(--text2);font-weight:500;line-height:1.3;">' +
+        (slideNames[i] || 'Slide ' + (i + 1)) + '</div>';
+      btn.onmouseover = function() { this.style.transform = 'scale(1.05)'; };
+      btn.onmouseout  = function() { this.style.transform = 'scale(1)'; };
+      btn.onclick = (function(idx) { return function() { go(idx); toggleOverview(); }; })(i);
+      grid.appendChild(btn);
+    }
+    ov.style.display = 'block';
+  } else {
+    ov.style.display = 'none';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('overview').style.display = 'none'; return; }
+  if (document.getElementById('overview').style.display !== 'none') return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  if (e.key === 'o' || e.key === 'O') { e.preventDefault(); toggleOverview(); }
+});
+
+let touchX = 0;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (dx < -50) next();
+  if (dx > 50)  prev();
+});
+
+go(0);
+</script>
+
+</body>
+</html>
