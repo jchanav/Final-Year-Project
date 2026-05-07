@@ -589,16 +589,6 @@
           </ul>
         </div>
       </div>
-      <div class="pain-card">
-        <div class="pain-num" style="background:var(--red);">Q4</div>
-        <div class="pain-body">
-          <div class="pain-q">Demand Estimation</div>
-          <ul class="pain-detail" style="padding-left:16px; margin-top:4px;">
-            <li>What is the approximate demand for each SKU over the coming week?</li>
-            <li>How to plan proactively when future orders are not yet confirmed?</li>
-          </ul>
-        </div>
-      </div>
     </div>
     <div class="insight-box" style="margin-top:18px; padding:22px 28px; border-width:2px;">
       <p style="font-size:1.15rem; text-align:center; line-height:1.7;">
@@ -1234,19 +1224,6 @@ $$+ \gamma^{H-1}\underbrace{\sum_{i,w}\bigl[\gamma^- \delta^{-,H}_{i,w} + \gamma
           <div class="step-item">
             <div class="step-num" style="background:var(--accent3);">5</div>
             <div class="step-body"><strong>Approve → Dispatch</strong> — CT collection orders, internal truck routes, EX retrieval/offload instructions.</div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="card card-orange" style="margin-bottom:12px;">
-          <h3 style="color:var(--warn);">AM / PM Dual-Run Concept</h3>
-          <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-            <div style="background:rgba(26,109,212,.06); border:1px solid rgba(26,109,212,.2); border-radius:10px; padding:10px 14px; font-size:.86rem;">
-              <strong>Morning Run (AM)</strong> — solve before the first truck departs.<br>Decide: CT container collection for today; AM internal transfer quantities; EX offload if warehouse is near capacity.
-            </div>
-            <div style="background:rgba(10,143,111,.06); border:1px solid rgba(10,143,111,.2); border-radius:10px; padding:10px 14px; font-size:.86rem;">
-              <strong>Afternoon Run (PM)</strong> — re-solve after observing today's actual demand.<br>Decide: PM internal transfer; preview tomorrow's decisions; update EX retrieval plan for next morning.
-            </div>
           </div>
         </div>
       </div>
