@@ -1201,30 +1201,28 @@ $$+ \gamma^{H-1}\underbrace{\sum_{i,w}\bigl[\gamma^- \delta^{-,H}_{i,w} + \gamma
   <div class="slide-inner">
     <p class="section-label" style="color:var(--warn);">Section 5 — Integration</p>
     <h2>Integrating the Model into <span class="accent">Towngas Operations</span></h2>
-    <div class="grid2" style="gap:18px; align-items:start;">
-      <div>
-        <h3 style="color:var(--text2); font-size:.84rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">End-to-End Pipeline</h3>
-        <div class="step-list">
-          <div class="step-item">
-            <div class="step-num" style="background:var(--accent2);">1</div>
-            <div class="step-body"><strong>Data Export from SAP / ERP</strong> — daily export of confirmed orders, inventory snapshot, GR records. <em>Automatable</em> via scheduled SAP query or API.</div>
-          </div>
-          <div class="step-item">
-            <div class="step-num" style="background:var(--accent2);">2</div>
-            <div class="step-body"><strong>Data Cleaning &amp; Preparation</strong> — standardise SKU codes, filter APPL scope (expandable to full SKU set), impute volumes. <em>Automatable</em> once pipeline is built.</div>
-          </div>
-          <div class="step-item">
-            <div class="step-num" style="background:var(--accent);">3</div>
-            <div class="step-body"><strong>Model + Prototype (Extended)</strong> — full SKU scope, updated cost parameters $F^{\mathrm{CT}}, h^{\mathrm{EX}}_d,\ldots$ confirmed with Towngas, additional real-world constraints added as needed.</div>
-          </div>
-          <div class="step-item">
-            <div class="step-num" style="background:var(--accent3);">4</div>
-            <div class="step-body"><strong>Manager Reviews Output</strong> — checks decisions against ongoing marketing campaigns, exceptional circumstances, and domain knowledge not captured in data.</div>
-          </div>
-          <div class="step-item">
-            <div class="step-num" style="background:var(--accent3);">5</div>
-            <div class="step-body"><strong>Approve → Dispatch</strong> — CT collection orders, internal truck routes, EX retrieval/offload instructions.</div>
-          </div>
+    <div style="max-width:860px; margin:0 auto; width:100%;">
+      <h3 style="color:var(--text2); font-size:.84rem; text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px;">End-to-End Pipeline</h3>
+      <div class="step-list" style="gap:14px;">
+        <div class="step-item" style="padding:14px 18px;">
+          <div class="step-num" style="background:var(--accent2); flex-shrink:0;">1</div>
+          <div class="step-body" style="font-size:.95rem;"><strong>Data Export from SAP / ERP</strong> — daily export of confirmed orders, inventory snapshot, GR records. <em>Automatable</em> via scheduled SAP query or API.</div>
+        </div>
+        <div class="step-item" style="padding:14px 18px;">
+          <div class="step-num" style="background:var(--accent2); flex-shrink:0;">2</div>
+          <div class="step-body" style="font-size:.95rem;"><strong>Data Cleaning &amp; Preparation</strong> — standardise SKU codes, filter APPL scope (expandable to full SKU set), impute volumes. <em>Automatable</em> once pipeline is built.</div>
+        </div>
+        <div class="step-item" style="padding:14px 18px;">
+          <div class="step-num" style="background:var(--accent); flex-shrink:0;">3</div>
+          <div class="step-body" style="font-size:.95rem;"><strong>Model + Prototype (Extended)</strong> — full SKU scope, updated cost parameters $F^{\mathrm{CT}}, h^{\mathrm{EX}}_d,\ldots$ confirmed with Towngas, additional real-world constraints added as needed.</div>
+        </div>
+        <div class="step-item" style="padding:14px 18px;">
+          <div class="step-num" style="background:var(--accent3); flex-shrink:0;">4</div>
+          <div class="step-body" style="font-size:.95rem;"><strong>Manager Reviews Output</strong> — checks decisions against ongoing marketing campaigns, exceptional circumstances, and domain knowledge not captured in data.</div>
+        </div>
+        <div class="step-item" style="padding:14px 18px;">
+          <div class="step-num" style="background:var(--accent3); flex-shrink:0;">5</div>
+          <div class="step-body" style="font-size:.95rem;"><strong>Approve → Dispatch</strong> — CT collection orders, internal truck routes, EX retrieval/offload instructions.</div>
         </div>
       </div>
     </div>
