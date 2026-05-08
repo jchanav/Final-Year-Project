@@ -225,19 +225,19 @@
   /* Per-slide abbreviation footer */
   .slide-abbr {
     margin-top: auto;
-    padding: 3px 10px;
+    padding: 6px 14px;
     background: rgba(26,109,212,.04);
     border: 1px solid rgba(26,109,212,.12);
     border-radius: 6px;
-    font-size: .58rem;
+    font-size: .7rem;
     color: var(--text3);
-    line-height: 1.4;
+    line-height: 1.45;
     max-width: fit-content;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
   }
-  .slide-abbr strong { color: var(--accent); font-weight: 700; font-size: .58rem; }
+  .slide-abbr strong { color: var(--accent); font-weight: 700; font-size: .72rem; }
 
   /* Emphasis ring for timeline phases */
   .tl-phase.emphasis {
@@ -574,6 +574,9 @@
         </div>
       </div>
     </div>
+    <div class="slide-abbr" style="margin-top:12px;">
+      <strong>CT</strong> Cargo Terminal &nbsp;·&nbsp; <strong>NP</strong> North Point &nbsp;·&nbsp; <strong>TM</strong> Tuen Mun &nbsp;·&nbsp; <strong>EX</strong> External Warehouse
+    </div>
   </div>
 </div>
 
@@ -616,7 +619,7 @@
       <div class="card card-accent">
         <h3>What We Propose</h3>
         <ul>
-          <li><strong>MILP</strong> jointly optimises all 4 daily decisions (CT collection, NP/TM transfers, EX offload/retrieval)</li>
+          <li><strong>MILP</strong> jointly optimises all 3 daily decisions (CT collection, NP/TM transfers, EX offload/retrieval)</li>
           <li><strong>7-day lookahead</strong> — only day-1 decisions are executed; the horizon rolls forward each morning</li>
           <li><strong>Decision-support tool</strong> — manager reviews and approves all recommendations</li>
         </ul>
